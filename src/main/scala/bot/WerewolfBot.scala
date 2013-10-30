@@ -14,18 +14,18 @@ class WerewolfBot ( val serverName:String
                     , val rooms:List[Room])
   extends ClassicBot {
 
-  def handler = new StateHandler(sender, Main.CHANNEL, Main.BOT_NAME, Main.MASTER_BOT)
+  def handler = new StateHandler(sender)
 
   def receive = onConnect orElse defaultHandler orElse {
    case Message(option, command, params) => {
       params match {
-        case List(_, _, Main.CHANNEL, message) => {
+        case List(_, _, Config.CHANNEL, message) => {
           handler.handleChannelMessage(message)
         }
-        case List(from, _, Main.BOT_NAME, message) => {
+        case List(from, _, Config.BOT_NAME, message) => {
           handler.handlePrivateMessage(message, from)
         }
-        case List(from, "MODE", Main.CHANNEL, "-v", target) => {
+        case List(from, "MODE", Config.CHANNEL, "-v", target) => {
           handler.handleDeath(target)
         }
         case _ => params.foreach({s => println("  " + s)})
@@ -37,17 +37,11 @@ class WerewolfBot ( val serverName:String
 
 object Main extends Logging {
 
-  val CHANNEL = "#werewolf"
-  val BOT_NAME = "carIes"
-  val MASTER_BOT = "twgbot"
-
   def main(args:Array[String]) = {
     val system = ActorSystem("Irc")
-    val server = "irc.server.com"
-    val port = 6667
-    val rooms = List(Room(CHANNEL, None))
+    val rooms = List(Room(Config.CHANNEL, None))
 
-    val bot = system.actorOf(Props(classOf[WerewolfBot], server, BOT_NAME, BOT_NAME, "", "CarIes", rooms))
-    val client = system.actorOf(Props(classOf[Client], server, port, bot))
+    val bot = system.actorOf(Props(classOf[WerewolfBot], Config.SERVER, Config.BOT_NAME, Config.BOT_NAME, "", "CarIes", rooms))
+    val client = system.actorOf(Props(classOf[Client], Config.SERVER, Config.PORT, bot))
   }
 }
